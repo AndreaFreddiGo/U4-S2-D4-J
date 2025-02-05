@@ -6,7 +6,11 @@ import andrea_freddi.entities.Product;
 import andrea_freddi.enums.Status;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.OptionalDouble;
+import java.util.stream.Collectors;
 
 public class Application {
 
@@ -41,17 +45,16 @@ public class Application {
         List<Customer> customers = List.of(customer1, customer2, customer3, customer4, customer5);
         List<Order> orders = List.of(order1, order2, order3, order4, order5, order6);
 
-        List<Product> expensiveBooks = products.stream().filter(product -> product.getCategory() == "Books" && product.getPrice() > 100).toList();
-        System.out.println("Expensive books: " + expensiveBooks);
+        Map<String, List<Order>> ordersByClient = orders.stream().collect(Collectors.groupingBy(Order -> Order.getCustomer().getName()));
+        ordersByClient.forEach((name, ordersList) -> System.out.println("Nome: " + name + " Ordini: " + ordersList));
 
-        List<Order> babyOrders = orders.stream().filter(order -> order.getProducts().stream().anyMatch(product -> product.getCategory() == "Baby")).toList();
-        System.out.println("Baby orders: " + babyOrders);
+        Map<String, Double> totalSpentByClient = orders.stream().collect(Collectors.groupingBy(Order -> Order.getCustomer().getName(), Collectors.summingDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum())));
+        totalSpentByClient.forEach((name, total) -> System.out.println("Nome: " + name + " Totale speso: " + total));
 
-        List<Product> saleBoysProducts = products.stream().filter(product -> product.getCategory() == "Boys").map(product -> new Product(product.getName(), product.getCategory(), product.getPrice() * 0.9)).toList();
-        System.out.println("Boys products on sale: " + saleBoysProducts);
+        List<Product> mostExpensiveProducts = products.stream().sorted(Comparator.comparingDouble(Product::getPrice).reversed()).limit(3).toList();
+        mostExpensiveProducts.forEach(product -> System.out.println("Name: " + product.getName() + ", Price: " + product.getPrice()));
 
-        List<Product> orderedProducts = orders.stream().filter(order -> order.getCustomer().getTier() == 2 && order.getOrderDate().isAfter(LocalDate.of(2021, 2, 1))
-                && order.getOrderDate().isBefore(LocalDate.of(2021, 4, 1))).flatMap(order -> order.getProducts().stream()).toList();
-        System.out.println("Ordered products: " + orderedProducts);
+        OptionalDouble averageTotalPrice = orders.stream().mapToDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum()).average();
+        System.out.println("La spesa media degli ordini è: " + averageTotalPrice.getAsDouble());
     }
 }
