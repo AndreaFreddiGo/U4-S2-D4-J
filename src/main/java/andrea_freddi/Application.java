@@ -4,12 +4,12 @@ import andrea_freddi.entities.Customer;
 import andrea_freddi.entities.Order;
 import andrea_freddi.entities.Product;
 import andrea_freddi.enums.Status;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalDouble;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Application {
@@ -59,6 +59,32 @@ public class Application {
 
         Map<String, Double> productsByCategoryTotalPrice = products.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingDouble(Product::getPrice)));
         productsByCategoryTotalPrice.forEach((category, total) -> System.out.println("Categoria: " + category + " - Prezzo totale: " + total));
+
+        File file = new File("src/main/java/andrea_freddi/prodotti.txt");
+        products.forEach(product -> {
+            try {
+                FileUtils.writeStringToFile(file, product.getName() + "@" + product.getCategory() + "@" + product.getPrice() + "#", "UTF-8", true);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        try {
+            String content = FileUtils.readFileToString(file, "UTF-8");
+            String[] productStrings = content.split("#");
+            List<Product> productsFromFile = new ArrayList<>();
+            for (String productString : productStrings) {
+                String[] productData = productString.split("@");
+                String name = productData[0];
+                String category = productData[1];
+                double price = Double.parseDouble(productData[2]);
+                productsFromFile.add(new Product(name, category, price));
+            }
+            productsFromFile.forEach(product -> System.out.println("Name: " + product.getName() + ", Category: " + product.getCategory() + ", Price: " + product.getPrice()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        
 
     }
 }
