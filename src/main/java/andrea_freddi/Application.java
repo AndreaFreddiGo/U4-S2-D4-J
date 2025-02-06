@@ -46,15 +46,19 @@ public class Application {
         List<Order> orders = List.of(order1, order2, order3, order4, order5, order6);
 
         Map<String, List<Order>> ordersByClient = orders.stream().collect(Collectors.groupingBy(Order -> Order.getCustomer().getName()));
-        ordersByClient.forEach((name, ordersList) -> System.out.println("Nome: " + name + " Ordini: " + ordersList));
+        ordersByClient.forEach((name, ordersList) -> System.out.println("Nome: " + name + " - Ordini: " + ordersList));
 
         Map<String, Double> totalSpentByClient = orders.stream().collect(Collectors.groupingBy(Order -> Order.getCustomer().getName(), Collectors.summingDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum())));
-        totalSpentByClient.forEach((name, total) -> System.out.println("Nome: " + name + " Totale speso: " + total));
+        totalSpentByClient.forEach((name, total) -> System.out.println("Nome: " + name + " - Totale speso: " + total));
 
         List<Product> mostExpensiveProducts = products.stream().sorted(Comparator.comparingDouble(Product::getPrice).reversed()).limit(3).toList();
-        mostExpensiveProducts.forEach(product -> System.out.println("Name: " + product.getName() + ", Price: " + product.getPrice()));
+        mostExpensiveProducts.forEach(product -> System.out.println("Name: " + product.getName() + " - Price: " + product.getPrice()));
 
         OptionalDouble averageTotalPrice = orders.stream().mapToDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum()).average();
         System.out.println("La spesa media degli ordini è: " + averageTotalPrice.getAsDouble());
+
+        Map<String, Double> productsByCategoryTotalPrice = products.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingDouble(Product::getPrice)));
+        productsByCategoryTotalPrice.forEach((category, total) -> System.out.println("Categoria: " + category + " - Prezzo totale: " + total));
+
     }
 }
